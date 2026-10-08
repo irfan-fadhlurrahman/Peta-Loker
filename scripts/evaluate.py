@@ -4,7 +4,8 @@
    major groups, so no single portal or occupation dominates:
        uv run python scripts/evaluate.py --sample 200
    -> data/review/kbji_labels.csv (real, masked postings; stays gitignored)
-2. Fill `gold_kbji_code` (`scripts/label.py kbji` walks the sheet row by row) with the correct 6-digit code (or 4-digit if you're
+2. Fill `gold_kbji_code` with the correct 6-digit code (or 4-digit if you're
+   only sure of the unit group); `scripts/label.py kbji` walks the sheet row by row.
    only sure of the unit group). Leave a row blank to skip it.
 3. Score and write the results page:
        uv run python scripts/evaluate.py --score data/review/kbji_labels.csv
