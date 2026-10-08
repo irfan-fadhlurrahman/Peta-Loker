@@ -13,7 +13,7 @@ TAILWIND  ?= bin/tailwindcss
 UV := uv run python
 
 .DEFAULT_GOAL := help
-.PHONY: help install db-init reference run reparse dedup normalise enrich quality dashboard dashboard-css \
+.PHONY: help install db-init reference run daily reparse dedup normalise enrich quality dashboard dashboard-css \
         dashboard-serve pipeline demo evaluate export deploy test lint
 
 help: ## List all targets
@@ -32,6 +32,10 @@ reference: ## Rebuild reference/*.csv from their public sources (KBJI PDF, BPS A
 
 run: ## Collect postings: make run SOURCE=dealls [MAX_PAGES=50]
 	$(UV) scripts/run.py $(SOURCE) $(if $(MAX_PAGES),--max-pages $(MAX_PAGES))
+
+daily: ## Scheduled daily job: collect all sources, normalise, dedup, quality gate (log in data/logs/)
+	@mkdir -p data/logs
+	$(UV) scripts/run.py all >> data/logs/daily_$$(date +%F).log 2>&1; 	$(UV) scripts/normalise.py >> data/logs/daily_$$(date +%F).log 2>&1; 	$(UV) scripts/dedup.py >> data/logs/daily_$$(date +%F).log 2>&1; 	$(UV) scripts/quality_check.py >> data/logs/daily_$$(date +%F).log 2>&1
 
 reparse: ## Re-parse stored raw pages without fetching: make reparse SOURCE=dealls
 	$(UV) scripts/reparse.py $(SOURCE)

@@ -102,6 +102,14 @@ make normalise dedup enrich quality dashboard
 make deploy           # refuses unless the data is public and clean
 ```
 
+Daily collection: schedule `make daily` (collect → normalise → dedup → quality gate, logged to
+`data/logs/`) once a day — with cron on Linux/macOS (`0 6 * * * cd /path/to/job_market && make daily`), or
+on Windows with Task Scheduler:
+
+```powershell
+schtasks /Create /SC DAILY /ST 06:00 /TN PetaLokerDaily /TR "bash -lc 'cd ~/job_market && make daily'"
+```
+
 `make help` lists every target. Tests: `make test` (no network or keys needed). Lint: `make lint`.
 
 ## Design decisions
