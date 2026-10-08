@@ -51,7 +51,7 @@ classDiagram
         +parse_payload(data, url)*
     }
     class BrowserSource {
-        +render(url, scrolls) str
+        +render(url) str
     }
     class FileSource
     JobSource <|-- JsonLdSource
@@ -85,7 +85,7 @@ file, how to fetch it. A new site that publishes JSON-LD needs about 30 lines.
 | Dealls | Public job-search API, `publishedAt desc`, 20 per page | JSON-LD | The listing page only server-renders 18 jobs; the sitemap has no dates |
 | Loker.id | `/cari-lowongan-kerja/page/N`, ~21 per page | JSON-LD + `extract_extra()` | Job level and function appear only in the HTML and help occupation coding |
 | Kalibrr | `/kjs/job_board/search`, `sort=Freshness`, 15 per page | Full records from the same JSON | One request = 15 complete postings; no detail pages needed |
-| KitaLulus | Rendered listing sorted by `updatedAt`; a page = first render or one scroll | JSON-LD + the page's own vacancy record | Its data API host disallows crawlers, so only public pages are rendered |
+| KitaLulus | Rendered listing sorted by `updatedAt` (newest ~31; loading more needs the disallowed API) | JSON-LD + the page's own vacancy record | Its data API host disallows crawlers: the browser aborts the page's own requests to it, so only server-rendered public pages are read |
 
 ## Data model
 

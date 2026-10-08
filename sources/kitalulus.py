@@ -1,14 +1,15 @@
 """KitaLulus (www.kitalulus.com) — BrowserSource.
 
-Why a browser: the listing is an infinite scroll with no server-side paging
-(?page=N returns the same first 31 jobs), so newer jobs only appear as a
-visitor scrolls. The site's data API (gql.kitalulus.com) is disallowed by its
-robots.txt, so it is never called directly or read from: everything here
-comes from rendering public www.kitalulus.com pages, which robots.txt allows.
+Why a browser: the job pages are rendered by Next.js and their data only
+appears after the page has run. The site's data API (gql.kitalulus.com) is
+disallowed by its robots.txt, so it is never called — BrowserSource aborts the
+page scripts' own requests to it — and everything here comes from the public
+www.kitalulus.com pages, which robots.txt allows.
 
-Discovery: render /lowongan sorted by "Terbaru" (updatedAt) and scroll,
-collecting /lowongan/detail/<slug> links; the first render and each scroll
-count as one listing page.
+Discovery: render /lowongan sorted by "Terbaru" (updatedAt) and collect its
+/lowongan/detail/<slug> links. Loading more ("Lebih Banyak", scrolling)
+goes through the disallowed API, and ?page=N returns the same first page, so
+one run sees the newest ~31 jobs; daily runs accumulate the rest.
 
 Parsing: the rendered detail page carries a JobPosting JSON-LD block (read
 with the shared JSON-LD mapper) and the vacancy record the page was rendered
@@ -32,7 +33,6 @@ from sources.jsonld import is_job_posting, iter_jsonld, posting_from_jsonld
 
 BASE_URL = "https://www.kitalulus.com"
 LISTING_URL = f"{BASE_URL}/lowongan?sortBy=updatedAt"
-IDLE_SCROLLS_BEFORE_STOP = 3
 _DETAIL_PATH = re.compile(r"^/lowongan/detail/([a-z0-9-]+)$")
 _RSC_CHUNK = re.compile(r'self\.__next_f\.push\(\[1,"(.*?)"\]\)', re.S)
 
@@ -71,28 +71,12 @@ class KitaLulusSource(BrowserSource):
 
     def list_jobs(self) -> Iterator[str]:
         self.render(LISTING_URL)
-        ordered: list[str] = []
-        seen: set[str] = set()
-        idle = 0
-        for _ in range(self.max_listing_pages):  # one listing page = the first render or one scroll
-            hrefs = self.page.eval_on_selector_all(
-                'a[href*="/lowongan/detail/"]', "els => els.map(e => e.getAttribute('href'))"
-            )
-            new = [h for h in dict.fromkeys(hrefs) if h and _DETAIL_PATH.match(h) and h not in seen]
-            seen.update(new)
-            ordered.extend(new)
-            # Collect before yielding: fetch() reuses the same page, which
-            # would navigate away from the listing.
-            if new:
-                idle = 0
-            else:
-                idle += 1
-                if idle >= IDLE_SCROLLS_BEFORE_STOP or len(seen) >= self.max_pages:
-                    break
-            if len(seen) >= self.max_pages:
-                break
-            self.page.mouse.wheel(0, 6000)
-            self.page.wait_for_timeout(self.settle_ms)
+        hrefs = self.page.eval_on_selector_all(
+            'a[href*="/lowongan/detail/"]', "els => els.map(e => e.getAttribute('href'))"
+        )
+        # Collect before yielding: fetch() reuses the same page, which would
+        # navigate away from the listing.
+        ordered = [h for h in dict.fromkeys(hrefs) if h and _DETAIL_PATH.match(h)]
         for href in ordered:
             yield f"{BASE_URL}{href}"
 

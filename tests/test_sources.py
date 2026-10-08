@@ -203,3 +203,35 @@ def test_committed_sample_parses_cleanly(conn, raw_store, settings):
     postings = source.parse(source.fetch(str(sample)), str(sample))
     assert len(postings) >= 500
     assert all(p.posted_at for p in postings)
+
+
+def test_browser_aborts_page_requests_that_robots_disallows(conn, raw_store, settings):
+    def handler(request):
+        if request.url.host == "api.example.com" and request.url.path == "/robots.txt":
+            return httpx.Response(200, text="User-agent: *\nDisallow: /\n")
+        if request.url.path == "/robots.txt":
+            return httpx.Response(200, text="User-agent: *\nDisallow:\n")
+        return httpx.Response(404)
+
+    source = _make(KitaLulusSource, conn, raw_store, settings, handler)
+
+    class Route:
+        def __init__(self, url, kind):
+            self.request = type("Request", (), {"url": url, "resource_type": kind})()
+            self.outcome = None
+
+        def abort(self):
+            self.outcome = "abort"
+
+        def continue_(self):
+            self.outcome = "continue"
+
+    cases = [("https://api.example.com/graphql", "fetch", "abort"),
+             ("https://www.example.com/lowongan", "document", "continue"),
+             ("https://api.example.com/app.js", "script", "continue"),
+             ("https://www.example.com/logo.png", "image", "abort")]
+    for url, kind, expected in cases:
+        route = Route(url, kind)
+        source._route(route)
+        assert route.outcome == expected, url
+    assert source.blocked_requests == 1

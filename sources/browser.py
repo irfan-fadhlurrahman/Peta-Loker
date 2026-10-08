@@ -8,6 +8,11 @@ The same rules as HttpClient apply: robots.txt is checked for every URL
 (through the source's HttpClient), the same honest User-Agent is sent, and
 there is a random delay between page loads. Images, fonts and media are not
 downloaded — they aren't needed and would only add load on the site.
+
+The page's own scripts are held to robots.txt too: a page often calls a data
+API on another host, and any document/XHR/fetch request to a URL that host's
+robots.txt disallows is aborted. So only what the public page itself renders
+is read (KitaLulus's API host, for one, disallows all crawlers).
 """
 
 from __future__ import annotations
@@ -19,6 +24,7 @@ from core.base import JobSource
 from core.errors import FetchFailed, RobotsDisallowed, SourceBlocked
 
 BLOCKED_RESOURCES = {"image", "font", "media"}
+ROBOTS_CHECKED_RESOURCES = {"document", "xhr", "fetch"}
 NAVIGATION_TIMEOUT_MS = 45_000
 
 
@@ -35,6 +41,7 @@ class BrowserSource(JobSource):
         self._browser = None
         self._page = None
         self._last_load: float | None = None
+        self.blocked_requests = 0  # page-script requests aborted by robots.txt
 
     @property
     def page(self):
@@ -51,9 +58,12 @@ class BrowserSource(JobSource):
             self._page.set_default_navigation_timeout(NAVIGATION_TIMEOUT_MS)
         return self._page
 
-    @staticmethod
-    def _route(route):
-        if route.request.resource_type in BLOCKED_RESOURCES:
+    def _route(self, route):
+        request = route.request
+        if request.resource_type in BLOCKED_RESOURCES:
+            return route.abort()
+        if request.resource_type in ROBOTS_CHECKED_RESOURCES and not self.http.allowed(request.url):
+            self.blocked_requests += 1
             return route.abort()
         return route.continue_()
 
@@ -65,10 +75,9 @@ class BrowserSource(JobSource):
         if remaining > 0:
             time.sleep(remaining)
 
-    def render(self, url: str, scrolls: int = 0) -> str:
+    def render(self, url: str) -> str:
         """Load `url` in the browser (robots-checked, rate-limited) and return
-        the rendered HTML. `scrolls` > 0 scrolls down that many times to let
-        infinite-scroll listings load more items."""
+        the rendered HTML."""
         if not self.http.allowed(url):
             raise RobotsDisallowed(f"robots.txt disallows {url}")
         self._wait_turn()
@@ -80,9 +89,6 @@ class BrowserSource(JobSource):
             if status >= 400:
                 raise FetchFailed(f"HTTP {status} rendering {url}")
             self.page.wait_for_timeout(self.settle_ms)
-            for _ in range(scrolls):
-                self.page.mouse.wheel(0, 6000)
-                self.page.wait_for_timeout(self.settle_ms)
             return self.page.content()
         except (SourceBlocked, FetchFailed):
             raise

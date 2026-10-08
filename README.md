@@ -115,7 +115,7 @@ schtasks /Create /SC DAILY /ST 06:00 /TN PetaLokerDaily /TR "bash -lc 'cd ~/job_
 ## Design decisions
 
 - **robots.txt decides which sources and pages are used.** That's why JobStreet isn't here, why Glints is
-  read from sitemaps instead of its search page, and why KitaLulus's data API is never called.
+  read from sitemaps instead of its search page, and why KitaLulus's data API is never called — not even by its own pages' scripts, which the headless browser stops.
 - **Structured data first.** Most portals publish schema.org `JobPosting` for search engines; one generic
   extractor covers three sites, and HTML scraping is a small hook, not the default.
 - **Raw pages are kept** (BytePlus TOS, or a local folder), so a parser fix is a `make reparse`, not a
