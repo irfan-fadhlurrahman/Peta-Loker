@@ -54,7 +54,7 @@ dashboard: ## Write the public, masked dashboard JSON to dashboard/data/
 dashboard-css: ## Rebuild dashboard/styles.css (Tailwind standalone CLI; TAILWIND=path)
 	cd dashboard && ../$(TAILWIND) -c tailwind.config.js -i input.css -o styles.css --minify
 
-dashboard-serve: ## Preview the dashboard at http://localhost:$(PORT)
+dashboard-serve: ## Preview the dashboard at http://localhost:8000 (PORT=... to change)
 	cd dashboard && uv run python -m http.server $(PORT) --bind 127.0.0.1
 
 pipeline: run normalise dedup enrich quality dashboard ## Full pipeline: collect → normalise → dedup → enrich → quality → dashboard

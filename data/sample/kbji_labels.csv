@@ -1,0 +1,31 @@
+title,kbji_code,confidence,kbli_section,skills
+Software Engineer Backend,2512.03,0.93,J,Python;SQL;Docker
+Frontend Developer,2513.06,0.9,J,JavaScript;React;CSS
+Data Analyst,2120.07,0.72,J,SQL;Excel;Tableau
+Staff Accounting,3313.01,0.86,M,Accurate;Excel;perpajakan
+Admin Gudang,4321.04,0.9,H,Excel
+Sales Executive,3322.03,0.88,G,negosiasi;penjualan
+Customer Service,4222.00,0.81,N,komunikasi;CRM
+Barista,5132.01,0.97,I,meracik kopi;pelayanan pelanggan
+Kasir,5230.01,0.95,G,pelayanan pelanggan
+Driver Pengiriman,8322.03,0.9,H,SIM B1
+Kurir Motor,8321.01,0.92,H,SIM C
+Operator Produksi,8189.99,0.62,C,K3;kerja shift
+Teknisi Listrik,3113.01,0.84,F,instalasi listrik;K3
+Perawat,2221.05,0.94,Q,STR;BTCLS
+Guru Matematika SMP,2330.01,0.95,P,matematika;pedagogi
+Desainer Grafis,2166.03,0.96,M,Figma;Adobe Illustrator
+Content Writer,2641.01,0.74,M,copywriting;SEO
+HR Generalist,2423.05,0.78,N,rekrutmen;BPJS;payroll
+Security,5414.01,0.96,N,Gada Pratama
+Cleaning Service,9112.03,0.91,N,kebersihan
+Cook,5120.00,0.95,I,food safety
+Marketing Manager,1221.02,0.89,G,strategi pemasaran;kepemimpinan
+Project Manager,1219.99,0.55,M,manajemen proyek
+Mekanik Motor,7231.04,0.95,G,mesin motor
+Apoteker,2262.00,0.97,Q,farmasi klinis;STRA
+Tukang Las,7212.01,0.93,C,las listrik;membaca gambar teknik
+Staf Administrasi,4110.00,0.83,N,Microsoft Office;arsip
+Digital Marketing Specialist,2431.04,0.9,M,Meta Ads;Google Ads
+Quality Control,7543.01,0.77,C,ISO 9001
+Pramuniaga,5223.01,0.88,G,pelayanan pelanggan

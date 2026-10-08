@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Peta Loker — Operasional</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath d='M15 27s9-8.2 9-15a9 9 0 1 0-18 0c0 6.8 9 15 9 15z' fill='none' stroke='%230E6B66' stroke-width='2.4'/%3E%3C/svg%3E">
+</head>
+<body data-page="operasional">
+  <header class="bg-surface border-b border-line">
+    <div class="max-w-page mx-auto px-4 sm:px-8 min-h-[68px] flex flex-wrap items-center gap-x-8 gap-y-3 py-2">
+      <a href="index.html" class="flex items-center gap-2.5 no-underline text-ink">
+        <svg width="30" height="30" viewBox="0 0 30 30" fill="none" stroke="#0E6B66" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 27s9-8.2 9-15a9 9 0 1 0-18 0c0 6.8 9 15 9 15z"/><path d="M11 10h8M11 14h5"/></svg>
+        <span class="font-display font-bold text-[22px] tracking-tight">Peta Loker</span>
+      </a>
+      <nav aria-label="Navigasi utama" class="flex flex-wrap gap-1 flex-auto">
+        <a href="index.html" class="nav-link">Ringkasan</a>
+        <a href="lowongan.html" class="nav-link">Lowongan</a>
+        <a href="index.html#jabatan" class="nav-link">Jabatan (KBJI)</a>
+        <a href="index.html#wilayah" class="nav-link">Wilayah</a>
+        <a href="operasional.html" class="nav-link is-active" aria-current="page">Operasional</a>
+      </nav>
+      <div class="flex items-center gap-3 flex-wrap">
+        <span id="data-label" class="text-xs font-semibold tracking-wider uppercase text-amber bg-amber-bg rounded-full px-2.5 py-1">Memuat…</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-page mx-auto px-4 sm:px-8 pt-10 pb-16 flex flex-col gap-6">
+    <section class="flex flex-col gap-1.5">
+      <h1 class="m-0 font-display font-bold text-[36px] leading-[42px] tracking-tight">Operasional pipeline</h1>
+      <p class="m-0 text-ink-soft">Kesehatan sumber, gerbang kualitas, dan pemakaian LLM. Data diperbarui saat snapshot dibuat, bukan secara langsung.</p>
+    </section>
+
+    <section aria-label="Ringkasan" class="grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(220px,100%),1fr))]" id="ops-stats"></section>
+
+    <section class="card flex flex-col gap-3.5">
+      <div class="flex justify-between items-baseline gap-3 flex-wrap">
+        <h2 class="h2">Kesehatan sumber</h2><span class="cap">14 run terakhir per sumber</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse text-sm">
+          <thead><tr class="text-left">
+            <th scope="col" class="lbl py-2.5 px-3 border-b border-line">Sumber</th>
+            <th scope="col" class="lbl py-2.5 px-3 border-b border-line">Kelas scraper</th>
+            <th scope="col" class="lbl py-2.5 px-3 border-b border-line">Run terakhir</th>
+            <th scope="col" class="lbl py-2.5 px-3 border-b border-line">Status</th>
+            <th scope="col" class="lbl py-2.5 px-3 border-b border-line text-right">Tersimpan</th>
+            <th scope="col" class="lbl py-2.5 px-3 border-b border-line">Riwayat</th>
+          </tr></thead>
+          <tbody id="sources"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(420px,100%),1fr))]">
+      <div class="card flex flex-col gap-3">
+        <div class="flex justify-between items-baseline gap-3 flex-wrap">
+          <h2 class="h2">Gerbang kualitas</h2><span class="cap">memblokir publikasi bila ada yang gagal</span>
+        </div>
+        <ul id="checks" class="list-none m-0 p-0 flex flex-col"></ul>
+      </div>
+      <div class="card flex flex-col gap-3.5">
+        <div class="flex justify-between items-baseline gap-3 flex-wrap">
+          <h2 class="h2">Keyakinan kode KBJI</h2><span class="cap" id="conf-note"></span>
+        </div>
+        <div id="histogram" class="flex items-end gap-2 h-[180px] border-b border-line px-1"></div>
+        <div class="cap flex justify-between"><span>0,0</span><span id="threshold-label"></span><span>1,0</span></div>
+        <div id="review" class="flex flex-wrap justify-between items-center gap-3 bg-amber-soft rounded-lg px-4 py-3.5"></div>
+      </div>
+    </section>
+
+    <section class="card flex flex-col gap-3">
+      <h2 class="h2">Pemakaian LLM</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse text-sm">
+          <thead><tr class="text-left">
+            <th scope="col" class="lbl py-2.5 px-3 border-b border-line">Langkah</th>
+            <th scope="col" class="lbl py-2.5 px-3 border-b border-line text-right">Panggilan</th>
+            <th scope="col" class="lbl py-2.5 px-3 border-b border-line text-right">Item</th>
+            <th scope="col" class="lbl py-2.5 px-3 border-b border-line text-right">Token masuk</th>
+            <th scope="col" class="lbl py-2.5 px-3 border-b border-line text-right">Token keluar</th>
+          </tr></thead>
+          <tbody id="llm"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="max-w-page mx-auto px-4 sm:px-8 pb-10">
+    <div class="border-t border-line pt-5 flex flex-wrap justify-between gap-3 cap">
+      <span>Proyek portofolio untuk tujuan edukasi. Bukan data resmi dan tidak berafiliasi dengan platform atau instansi mana pun.</span>
+      <a href="https://github.com/irfan-fadhlurrahman/job_market">Kode sumber</a>
+    </div>
+  </footer>
+  <script src="app.js" defer></script>
+</body>
+</html>

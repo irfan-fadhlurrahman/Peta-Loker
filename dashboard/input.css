@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body { @apply bg-paper text-ink font-sans text-[15px] leading-[22px]; }
+  a { @apply text-teal; }
+  a:hover { @apply text-teal-dark; }
+  :focus-visible { @apply outline outline-2 outline-offset-2 outline-teal; }
+}
+
+@layer components {
+  .card { @apply bg-surface border border-line rounded-xl p-6 min-w-0; }
+  .h2 { @apply font-display font-bold text-xl leading-7 text-ink m-0; }
+  .cap { @apply text-[13px] leading-[18px] text-ink-muted; }
+  .lbl { @apply text-xs font-semibold tracking-wider uppercase text-ink-muted; }
+  .stat-value { @apply font-display font-bold text-[34px] leading-10 tracking-tight; }
+  .nav-link { @apply px-3.5 py-2.5 rounded-lg no-underline text-ink-soft; }
+  .nav-link.is-active { @apply font-semibold text-ink bg-teal-soft; }
+  .chip { @apply inline-flex items-center gap-2 border border-teal-chipline bg-teal-chip rounded-full px-3 py-1.5 text-sm; }
+  .badge { @apply inline-block text-[13px] font-semibold rounded-md px-2.5 py-1; }
+  .bar-track { @apply block h-3.5 bg-line-soft rounded overflow-hidden; }
+  .bar-fill { @apply block h-3.5 bg-teal rounded; }
+  .field-input { @apply h-11 w-full border border-line-strong rounded-lg bg-surface px-3 text-ink; }
+  .chk { @apply flex items-center gap-2.5 min-h-8 text-sm cursor-pointer; }
+  .chk input { @apply w-[18px] h-[18px] accent-teal m-0; }
+  .pill { @apply inline-flex items-center gap-1.5 text-[13px] font-semibold rounded-full px-2.5 py-0.5; }
+  .tile { @apply flex items-center justify-center rounded text-[10px] font-semibold leading-none; }
+  .mask { @apply bg-ink text-ink rounded-sm px-0.5 select-none; }
+}

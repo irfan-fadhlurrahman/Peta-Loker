@@ -25,8 +25,8 @@ config/*.local.yaml
 data/*
 !data/sample/
 
-# Real dashboard JSON is deployed from the laptop, never committed; the
-# committed copy is the synthetic sample (dashboard/sample-data/).
+# Dashboard JSON is generated (make demo / make dashboard) and deployed from
+# the laptop with the Vercel CLI; it is never committed.
 dashboard/data/
 
 # Tailwind standalone binary (downloaded per machine)
