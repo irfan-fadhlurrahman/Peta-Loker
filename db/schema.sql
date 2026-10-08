@@ -158,7 +158,7 @@ CREATE TABLE IF NOT EXISTS job_classifications (
     reason          TEXT,
     needs_review    INTEGER NOT NULL DEFAULT 0,
     pii_found       INTEGER NOT NULL DEFAULT 0,
-    status          TEXT NOT NULL,           -- ok | failed | filtered
+    status          TEXT NOT NULL,           -- ok | partial (4-digit only) | failed
     date_created    TEXT NOT NULL,
     PRIMARY KEY (vacancy_id, model, prompt_version)
 );

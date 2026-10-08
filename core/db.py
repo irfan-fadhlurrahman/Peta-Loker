@@ -11,6 +11,7 @@ DB_PATH (env, optional) overrides the default data/peta_loker.db; tests pass
 
 from __future__ import annotations
 
+import json
 import os
 import sqlite3
 from collections.abc import Iterable
@@ -293,3 +294,116 @@ def save_vacancies(conn: sqlite3.Connection, vacancies: list[dict], assignments:
     except Exception:
         conn.rollback()
         raise
+
+
+# -------------------------------------------------------------------- enrich
+
+
+def vacancies_to_classify(conn: sqlite3.Connection, model: str, prompt_version: str, limit: int | None = None,
+                          vacancy_ids: list[str] | None = None) -> list[sqlite3.Row]:
+    """Canonical posting of every vacancy without a successful classification
+    for this model and prompt version, newest first."""
+    params: list = [model, prompt_version]
+    where = ""
+    if vacancy_ids is not None:
+        where = f"AND v.vacancy_id IN ({', '.join('?' for _ in vacancy_ids)})"
+        params.extend(vacancy_ids)
+    sql = f"""
+        SELECT v.vacancy_id, p.title, p.extra_json, p.education_raw, p.description_masked
+        FROM job_vacancies v
+        JOIN job_postings p ON p.posting_id = v.canonical_posting_id
+        WHERE NOT EXISTS (
+            SELECT 1 FROM job_classifications c
+            WHERE c.vacancy_id = v.vacancy_id AND c.model = ? AND c.prompt_version = ? AND c.status = 'ok'
+        ) {where}
+        ORDER BY v.first_seen DESC, v.vacancy_id
+    """
+    if limit:
+        sql += " LIMIT ?"
+        params.append(limit)
+    return conn.execute(sql, params).fetchall()
+
+
+def save_classifications(conn: sqlite3.Connection, rows: list[dict]) -> None:
+    conn.executemany(
+        """
+        INSERT INTO job_classifications (vacancy_id, model, prompt_version, kbji4, alt4, confidence4, kbji_code,
+                                         confidence, reason, needs_review, pii_found, status, date_created)
+        VALUES (:vacancy_id, :model, :prompt_version, :kbji4, :alt4, :confidence4, :kbji_code, :confidence,
+                :reason, :needs_review, :pii_found, :status, :date_created)
+        ON CONFLICT (vacancy_id, model, prompt_version) DO UPDATE SET
+            kbji4 = excluded.kbji4, alt4 = excluded.alt4, confidence4 = excluded.confidence4,
+            kbji_code = excluded.kbji_code, confidence = excluded.confidence, reason = excluded.reason,
+            needs_review = excluded.needs_review, pii_found = excluded.pii_found, status = excluded.status,
+            date_created = excluded.date_created
+        """,
+        rows,
+    )
+    conn.commit()
+
+
+def save_skills(conn: sqlite3.Connection, vacancy_id: str, skills: list[tuple[str, str]], model: str,
+                prompt_version: str) -> None:
+    """Replace a vacancy's skills. skills: [(skill_norm, skill_raw)]."""
+    conn.execute("DELETE FROM job_skills WHERE vacancy_id = ?", (vacancy_id,))
+    conn.executemany(
+        """
+        INSERT INTO job_skills (vacancy_id, skill_norm, skill_raw, model, prompt_version) VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT (vacancy_id, skill_norm) DO NOTHING
+        """,
+        [(vacancy_id, norm, raw, model, prompt_version) for norm, raw in skills],
+    )
+    conn.commit()
+
+
+def log_llm_call(conn: sqlite3.Connection, row: dict) -> None:
+    conn.execute(
+        """
+        INSERT INTO llm_usage (call_id, step, model, prompt_version, n_items, input_tokens, output_tokens,
+                               latency_ms, status, date_created)
+        VALUES (:call_id, :step, :model, :prompt_version, :n_items, :input_tokens, :output_tokens, :latency_ms,
+                :status, :date_created)
+        """,
+        row,
+    )
+    conn.commit()
+
+
+def companies_to_code(conn: sqlite3.Connection, limit: int | None = None) -> list[dict]:
+    """Companies without a KBLI section, with hints: the industry a source
+    states for them and a few titles they advertise."""
+    sql = """
+        SELECT c.company_hmac, c.name_local FROM job_companies c
+        WHERE c.kbli_section IS NULL
+          AND EXISTS (SELECT 1 FROM job_postings p WHERE p.company_hmac = c.company_hmac)
+        ORDER BY c.company_hmac
+    """
+    if limit:
+        sql += f" LIMIT {int(limit)}"
+    out = []
+    for company in conn.execute(sql).fetchall():
+        posts = conn.execute(
+            "SELECT title, extra_json FROM job_postings WHERE company_hmac = ? ORDER BY fetched_at DESC LIMIT 5",
+            (company["company_hmac"],),
+        ).fetchall()
+        industries = []
+        for p in posts:
+            extra = json.loads(p["extra_json"]) if p["extra_json"] else {}
+            if extra.get("industry"):
+                industries.append(extra["industry"])
+        out.append({"company_hmac": company["company_hmac"], "name": company["name_local"],
+                    "industry_hint": industries[0] if industries else None,
+                    "titles": list(dict.fromkeys(p["title"] for p in posts))[:3]})
+    return out
+
+
+def save_company_kbli(conn: sqlite3.Connection, rows: list[dict]) -> None:
+    conn.executemany(
+        """
+        UPDATE job_companies SET kbli_section = :kbli_section, kbli_model = :model,
+               kbli_prompt_version = :prompt_version
+        WHERE company_hmac = :company_hmac
+        """,
+        rows,
+    )
+    conn.commit()
