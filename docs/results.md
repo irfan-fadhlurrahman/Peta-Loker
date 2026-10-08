@@ -23,6 +23,6 @@
 
 *Not evaluated yet: label a sample with `scripts/evaluate.py --sample 200`, then `--score`.*
 
-- Classifications flagged for review: 0 of 0 (–)
-- LLM tokens: 0 in / 0 out for 0 vacancies coded
-- Cost per 1,000 vacancies: – (Seed 2.0 Lite list price from config; KBJI steps plus KBLI)
+- Classifications flagged for review: 76 of 649 (11.7%)
+- LLM tokens: 904,416 in / 118,412 out for 621 vacancies coded
+- Cost per 1,000 vacancies: US$1.3 (seed-2-0-pro-260328; list price from config; KBJI steps plus KBLI)

@@ -1,0 +1,4 @@
+.env*
+.vercel
+input.css
+tailwind.config.js

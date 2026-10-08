@@ -74,7 +74,7 @@ export: ## Export vacancies to CSV under data/export/
 
 deploy: ## Deploy dashboard/ to Vercel, only after the public-data checks pass
 	$(UV) scripts/deploy_check.py
-	cd dashboard && vercel deploy --prod
+	cd dashboard && vercel deploy --prod --yes
 
 test: ## Run the test suite
 	uv run pytest
