@@ -232,6 +232,8 @@ class JobSource(ABC):
                 return
         raw = self.fetch(url)
         counts["n_fetched"] += 1
+        if counts["n_fetched"] % 25 == 0:
+            self.logger.info("progress: %s", counts)
         fetched_at = now_iso()
         raw_key = self.raw_store.save(self.source, job_id or url, raw, {"url": url, "fetched_at": fetched_at})
         postings = self.parse(raw, url)

@@ -133,7 +133,9 @@ class HttpClient:
                     retry_after = _retry_after_seconds(response)
                     if attempt == self.max_retries:
                         raise SourceBlocked(f"429 Too Many Requests persisted for {url}")
-                    self._sleep(min(retry_after, MAX_RETRY_AFTER_SECONDS))
+                    wait = min(retry_after, MAX_RETRY_AFTER_SECONDS)
+                    logger.warning("GET %s: 429 Too Many Requests, waiting %.0fs", url, wait)
+                    self._sleep(wait)
                     continue
                 if status < 500:
                     raise FetchFailed(f"HTTP {status} for {url}")
