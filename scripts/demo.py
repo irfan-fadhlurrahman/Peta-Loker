@@ -115,7 +115,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         steps["classify"] = apply_hand_labels(conn)
 
-    report = quality_check.run_checks(conn)
+    report = quality_check.run_checks(conn, sources=["sample"])
     quality_check.REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
     quality_check.REPORT_PATH.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     steps["quality"] = {"status": report["status"], "warn": report["warn"]}

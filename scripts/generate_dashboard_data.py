@@ -80,10 +80,12 @@ def _best_classifications(conn) -> dict[str, dict]:
     return {r["vacancy_id"]: dict(r) for r in rows}  # later rows (ok, newest) win
 
 
-def build(conn, public: bool = True, today: date | None = None) -> dict[str, dict]:
+def build(conn, public: bool = True, today: date | None = None, limit: int | None = 0) -> dict[str, dict]:
+    """All dashboard payloads. `limit`: 0 = the public cap from config,
+    None = every active vacancy (local exports only), N = at most N."""
     today = today or today_jakarta()
     generated = {"public": public, "generated_at": now_iso()}
-    max_vacancies = config.public()["max_vacancies"]
+    max_vacancies = config.public()["max_vacancies"] if limit == 0 else limit
     desc_chars = config.masking()["public_description_chars"]
 
     regions = {r["region_code"]: dict(r) for r in conn.execute("SELECT * FROM ref_regions")}
@@ -181,7 +183,7 @@ def build(conn, public: bool = True, today: date | None = None) -> dict[str, dic
 
     # ---------------------------------------------------------- vacancies
     records = []
-    for v in active[:max_vacancies]:
+    for v in (active if max_vacancies is None else active[:max_vacancies]):
         c = classes.get(v["vacancy_id"])
         region = regions.get(v["region_code"]) if v["region_code"] else None
         kbji_record = None

@@ -37,17 +37,20 @@ def _ratio(n: int, total: int) -> float:
     return round(n / total, 4) if total else 0.0
 
 
-def run_checks(conn, settings: dict | None = None) -> dict:
+def run_checks(conn, settings: dict | None = None, sources: list[str] | None = None) -> dict:
+    """`sources`: which sources must have produced rows (default: every
+    enabled source in config; the demo passes just its file source)."""
     settings = settings or config.quality()
     checks = []
 
-    def add(name: str, level: str, ok: bool, value):
-        checks.append({"check": name, "level": level, "status": "pass" if ok else level, "value": value})
+    def add(name: str, level: str, ok: bool, value, kind: str):
+        checks.append({"check": name, "level": level, "status": "pass" if ok else level, "value": value,
+                       "kind": kind})
 
     total = db.count(conn, "job_postings")
     empty = db.count(conn, "job_postings", "title IS NULL OR title = '' OR location_raw IS NULL OR location_raw = ''")
     add("title_and_location_present", "fail",
-        _ratio(empty, total) <= settings["max_empty_title_location_ratio"], _ratio(total - empty, total))
+        _ratio(empty, total) <= settings["max_empty_title_location_ratio"], _ratio(total - empty, total), "ratio")
 
     invalid = conn.execute(
         """
@@ -56,33 +59,35 @@ def run_checks(conn, settings: dict | None = None) -> dict:
            OR (c.kbji_code IS NOT NULL AND c.kbji_code NOT IN (SELECT code FROM ref_kbji WHERE level = 5))
         """
     ).fetchone()[0]
-    add("kbji_codes_valid", "fail", invalid == 0, invalid)
+    add("kbji_codes_valid", "fail", invalid == 0, invalid, "count")
 
     pii_hits = 0
     for row in conn.execute(f"SELECT {', '.join(PII_COLUMNS)} FROM job_postings"):
         pii_hits += sum(1 for col in PII_COLUMNS if find_pii(row[col]))
-    add("no_contact_details_in_clean_tables", "fail", pii_hits == 0, pii_hits)
+    add("no_contact_details_in_clean_tables", "fail", pii_hits == 0, pii_hits, "count")
 
     silent = []
-    for source in config.enabled_sources():
+    for source in sources if sources is not None else config.enabled_sources():
         last = conn.execute(
             "SELECT status, n_saved, n_skipped FROM job_run_logs WHERE source_id = ? ORDER BY started_at DESC LIMIT 1",
             (source,),
         ).fetchone()
         if last is None or (last["n_saved"] == 0 and last["n_skipped"] == 0):
             silent.append(source)
-    add("every_source_produced_rows", "warn", not silent, silent)
+    add("every_source_produced_rows", "warn", not silent, silent, "list")
 
     mapped = db.count(conn, "job_postings", "region_code IS NOT NULL OR is_remote = 1")
-    add("region_mapped", "warn", _ratio(mapped, total) >= settings["min_region_mapped_ratio"], _ratio(mapped, total))
+    add("region_mapped", "warn", _ratio(mapped, total) >= settings["min_region_mapped_ratio"], _ratio(mapped, total),
+        "ratio")
 
     salary = db.count(conn, "job_postings", "salary_min IS NOT NULL")
-    add("salary_parsed", "warn", _ratio(salary, total) >= settings["min_salary_parsed_ratio"], _ratio(salary, total))
+    add("salary_parsed", "warn", _ratio(salary, total) >= settings["min_salary_parsed_ratio"], _ratio(salary, total),
+        "ratio")
 
     vacancies = db.count(conn, "job_vacancies")
     dup_ratio = _ratio(total - vacancies, total) if vacancies else 0.0
     lo, hi = settings["duplicate_ratio_range"]
-    add("duplicate_ratio_in_range", "warn", lo <= dup_ratio <= hi, dup_ratio)
+    add("duplicate_ratio_in_range", "warn", lo <= dup_ratio <= hi, dup_ratio, "ratio")
 
     failed = [c["check"] for c in checks if c["status"] == "fail"]
     warned = [c["check"] for c in checks if c["status"] == "warn"]

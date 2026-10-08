@@ -309,10 +309,10 @@ async function operasional() {
   document.getElementById("checks").innerHTML = q ? q.checks.map((c) => {
     const [label, cls] = c.status === "pass" ? ["Lolos", "text-teal-dark bg-ok-bg"]
       : c.status === "warn" ? ["Peringatan", "text-amber bg-amber-bg"] : ["Gagal", "text-danger bg-danger-bg"];
-    const value = Array.isArray(c.value) ? (c.value.join(", ") || "–") : typeof c.value === "number" && c.value <= 1 && !Number.isInteger(c.value) ? PCT.format(c.value) : c.value;
-    return `<li class="grid grid-cols-[100px_minmax(0,1fr)_auto] gap-3 items-center py-2.5 border-b border-line-soft">
-      <span class="pill ${cls} justify-center">${label}</span><span class="text-sm font-mono">${esc(c.check)}</span>
-      <span class="font-mono text-[13px] text-ink-soft">${esc(value)}</span></li>`;
+    const value = c.kind === "list" ? (c.value.join(", ") || "–") : c.kind === "ratio" ? PCT.format(c.value) : NF.format(c.value);
+    return `<li class="grid grid-cols-[100px_minmax(0,1fr)_minmax(0,35%)] gap-3 items-center py-2.5 border-b border-line-soft">
+      <span class="pill ${cls} justify-center">${label}</span><span class="text-sm font-mono break-words">${esc(c.check)}</span>
+      <span class="font-mono text-[13px] text-ink-soft text-right break-words">${esc(value)}</span></li>`;
   }).join("") : '<li class="cap py-2">Gerbang kualitas belum dijalankan.</li>';
 
   const hist = ops.llm.confidence_histogram;
