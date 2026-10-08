@@ -47,7 +47,7 @@ scraped data.
 | Collect | One `JobSource` base class owns robots.txt checks, 2–5 s delays, page caps (the newest 10 listing pages per source), masking and the 60-day window; each portal only says where its jobs are and how to read one |
 | Normalise | Salary → monthly IDR, lowest education level, minimum years of experience, location → BPS regency code |
 | Dedup | Exact id, identical content, then fuzzy title + description match within company and province; stable vacancy ids |
-| Code | Seed 2.0 Lite picks the 4-digit unit group from all 447, then the 6-digit jabatan within it; every answer is validated against the official table |
+| Code | Seed 2.0 Pro picks the 4-digit unit group from all 447, then the 6-digit jabatan within it; every answer is validated against the official table |
 | Publish | A quality gate and a deploy check guarantee no contact details and no company names reach the public site |
 
 Details: [docs/architecture.md](docs/architecture.md) · Product requirements: [docs/PRD.md](docs/PRD.md)

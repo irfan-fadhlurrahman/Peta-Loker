@@ -60,12 +60,16 @@ llm:
   review_threshold: 0.70    # confidence below this -> needs_review
   description_chars: 800    # chars of masked description sent to the model
   max_skills: 10
-  # Seed 2.0 Lite list price, USD per million tokens, used for the cost-per-1,000
-  # figure in docs/results.md. Taken from third-party pages (8 Oct 2026): confirm
+  # Seed 2.0 reasons before answering by default, which made a 10-job batch take
+  # 15-40 s (and some calls several minutes). Answers are validated against the
+  # reference tables either way; "enabled" trades speed and cost for reasoning.
+  thinking: disabled
+  # Seed 2.0 Pro list price (prompts up to 128K), USD per million tokens, used for the cost-per-1,000
+  # figure in docs/results.md. From BytePlus's ModelArk pricing docs via search (8 Oct 2026): confirm
   # on the BytePlus ModelArk console and update here.
   price_usd_per_mtok:
-    input: 0.25
-    output: 2.00
+    input: 0.50
+    output: 3.00
 
 masking:
   public_description_chars: 200

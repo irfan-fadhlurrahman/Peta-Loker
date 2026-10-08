@@ -1,5 +1,5 @@
 """Code vacancies to KBJI 2026 (two steps), extract skills, and code
-companies to a KBLI 2020 section — with BytePlus Ark (Seed 2.0 Lite).
+companies to a KBLI 2020 section — with BytePlus Ark (Seed 2.0 Pro).
 
 Only vacancies without a successful classification for the current model and
 PROMPT_VERSION are sent, so re-runs cost nothing and a new prompt version
@@ -194,7 +194,7 @@ def main(argv: list[str] | None = None) -> int:
         logger.info("dry run: %s", dry_run(conn, tax, rows, settings))
         return 0
 
-    client = LlmClient()
+    client = LlmClient(thinking=config.llm().get("thinking"))
     record = Recorder(conn, client.model)
     try:
         rows = db.vacancies_to_classify(conn, client.model, PROMPT_VERSION, args.limit, ids)

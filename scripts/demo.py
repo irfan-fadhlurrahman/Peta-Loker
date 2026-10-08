@@ -105,7 +105,7 @@ def main(argv: list[str] | None = None) -> int:
         from core.llm_client import LlmClient
         from scripts.enrich import Recorder, classify_companies, classify_vacancies
 
-        client = LlmClient()
+        client = LlmClient(thinking=config.llm().get("thinking"))
         record = Recorder(conn, client.model)
         tax = Taxonomy.from_reference()
         rows = db.vacancies_to_classify(conn, client.model, PROMPT_VERSION)

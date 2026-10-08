@@ -59,6 +59,21 @@ def test_client_gives_up_after_max_attempts():
         _client(lambda r: _reply(status=500)).complete("s", "u")
 
 
+def test_client_sends_thinking_only_when_configured():
+    bodies = []
+
+    def handler(request):
+        bodies.append(json.loads(request.content))
+        return _reply("[]")
+
+    _client(handler).complete("s", "u")
+    off = LlmClient(api_key="k", base_url="https://ark.test/api/v3", model="m", thinking="disabled",
+                    transport=httpx.MockTransport(handler), sleep=lambda s: None)
+    off.complete("s", "u")
+    assert "thinking" not in bodies[0]
+    assert bodies[1]["thinking"] == {"type": "disabled"}
+
+
 def test_client_requires_credentials(monkeypatch):
     for var in ("ARK_API_KEY", "ARK_BASE_URL", "ARK_MODEL"):
         monkeypatch.delenv(var, raising=False)

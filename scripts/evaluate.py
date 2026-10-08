@@ -126,7 +126,8 @@ def cost_per_thousand(conn) -> dict:
     coded = conn.execute("SELECT COUNT(DISTINCT vacancy_id) FROM job_classifications WHERE status = 'ok'").fetchone()[0]
     tokens_in, tokens_out = row[0] or 0, row[1] or 0
     usd = tokens_in / 1e6 * prices.get("input", 0) + tokens_out / 1e6 * prices.get("output", 0)
-    return {"vacancies_coded": coded, "input_tokens": tokens_in, "output_tokens": tokens_out,
+    models = [r[0] for r in conn.execute("SELECT DISTINCT model FROM llm_usage ORDER BY model")]
+    return {"models": models, "vacancies_coded": coded, "input_tokens": tokens_in, "output_tokens": tokens_out,
             "usd_total": round(usd, 4), "usd_per_1000": round(usd / coded * 1000, 3) if coded else None}
 
 
@@ -194,7 +195,7 @@ def write_results(conn, metrics: dict | None, path: Path = RESULTS) -> None:
         f"- LLM tokens: {cost['input_tokens']:,} in / {cost['output_tokens']:,} out for "
         f"{cost['vacancies_coded']:,} vacancies coded",
         f"- Cost per 1,000 vacancies: {('US$' + str(cost['usd_per_1000'])) if cost['usd_per_1000'] else '–'} "
-        "(Seed 2.0 Lite list price from config; KBJI steps plus KBLI)",
+        f"({', '.join(cost.get('models') or ['no model yet'])}; list price from config; KBJI steps plus KBLI)",
         "",
     ]
     path.parent.mkdir(parents=True, exist_ok=True)

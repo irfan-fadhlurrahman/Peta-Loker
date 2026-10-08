@@ -18,7 +18,7 @@ flowchart LR
     P --> N[Normalise<br/>salary · education · location]
     N --> D[Dedup<br/>exact · repost · fuzzy]
     D --> V[(job_vacancies)]
-    V --> E[LLM enrich<br/>Seed 2.0 Lite]
+    V --> E[LLM enrich<br/>Seed 2.0 Pro]
     REF --> E
     E --> C[(classifications<br/>skills · KBLI)]
     C --> Q{Quality gate}

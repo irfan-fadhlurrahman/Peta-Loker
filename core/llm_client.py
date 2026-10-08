@@ -1,5 +1,5 @@
 """BytePlus ModelArk client (OpenAI-compatible chat completions), used for
-KBJI/KBLI coding and skill extraction. Model: Seed 2.0 Lite by default.
+KBJI/KBLI coding and skill extraction. Model: Seed 2.0 Pro (ARK_MODEL).
 
 Credentials come from .env (see core/env.py): ARK_API_KEY, ARK_BASE_URL,
 ARK_MODEL. Called with raw httpx — the same pattern as the social-media
@@ -11,6 +11,8 @@ Behaviour worth knowing:
   * Seed 2.0 is a reasoning model: if it runs out of tokens while reasoning,
     the HTTP call succeeds but `content` is empty (finish_reason="length").
     That, 429/5xx and timeouts are retried with exponential backoff;
+  * thinking is set from config (llm.thinking); off by default because
+    reasoning made batches 10-20x slower;
   * finish_reason="content_filter" is deterministic, so it is raised as
     ContentFilterError straight away — the caller bisects the batch to
     isolate the offending item instead of retrying.
@@ -61,7 +63,7 @@ class LlmResponse:
 
 class LlmClient:
     def __init__(self, api_key: str | None = None, base_url: str | None = None, model: str | None = None,
-                 transport: httpx.BaseTransport | None = None, sleep=time.sleep):
+                 transport: httpx.BaseTransport | None = None, sleep=time.sleep, thinking: str | None = None):
         self.api_key = api_key or os.environ.get("ARK_API_KEY", "")
         self.base_url = (base_url or os.environ.get("ARK_BASE_URL", "")).rstrip("/")
         self.model = model or os.environ.get("ARK_MODEL", "")
@@ -69,6 +71,7 @@ class LlmClient:
             raise RuntimeError("ARK_API_KEY, ARK_BASE_URL and ARK_MODEL must be set (see .env.example)")
         self._client = httpx.Client(timeout=TIMEOUT_SECONDS, transport=transport)
         self._sleep = sleep
+        self.thinking = thinking  # "enabled" / "disabled"; None = the model's default
 
     def close(self) -> None:
         self._client.close()
@@ -83,6 +86,7 @@ class LlmClient:
                 "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
                 "temperature": 0,
                 "max_tokens": MAX_TOKENS,
+                **({"thinking": {"type": self.thinking}} if self.thinking else {}),
             },
         )
         latency_ms = int((time.monotonic() - started) * 1000)
