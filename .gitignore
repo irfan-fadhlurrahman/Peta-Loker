@@ -1,0 +1,42 @@
+# Private notes and tooling — never published
+_private/
+
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv
+
+# Secrets / local config overrides
+.env
+config/*.local.yaml
+
+# Data: raw pages, the real database and anything scraped. Only the
+# synthetic sample under data/sample/ is committed.
+data/*
+!data/sample/
+
+# Real dashboard JSON is deployed from the laptop, never committed; the
+# committed copy is the synthetic sample (dashboard/sample-data/).
+dashboard/data/
+
+# Tailwind standalone binary (downloaded per machine)
+bin/
+
+# Vercel CLI link state
+.vercel/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
