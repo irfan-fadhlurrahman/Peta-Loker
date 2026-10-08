@@ -12,17 +12,28 @@
 | &nbsp;&nbsp;from kalibrr | 147 |
 | &nbsp;&nbsp;from kitalulus | 31 |
 | &nbsp;&nbsp;from lokerid | 160 |
-| Unique vacancies after dedup | 649 |
-| Duplicates merged | 155 (19.3%) |
+| Unique vacancies after dedup | 737 |
+| Duplicates merged | 67 (8.3%) |
 | Salary parsed | 48.6% |
 | Education level parsed | 71.4% |
 | Experience parsed | 63.3% |
 | Location mapped to a BPS regency | 77.1% |
+| Dedup precision (LLM-checked pairs, n=100; title threshold tuned on them) | 0.75 |
 
 ## KBJI 2026 coding
 
-*Not evaluated yet: label a sample with `scripts/evaluate.py --sample 200`, then `--score`.*
+Labelled sample: **198 vacancies**, stratified by source and predicted major group. Labels by: an independent LLM reviewer (Claude, a different model family from the coder), blind to the coder's predictions. Read the figures as agreement between two models, not as accuracy against human experts.
 
-- Classifications flagged for review: 76 of 649 (11.7%)
-- LLM tokens: 904,416 in / 118,412 out for 621 vacancies coded
-- Cost per 1,000 vacancies: US$1.3 (seed-2-0-pro-260328; list price from config; KBJI steps plus KBLI)
+| Level | Agreement |
+|---|---|
+| Major group (1 digit) | 73.7% |
+| Sub-major group (2 digits) | 70.2% |
+| Unit group (4 digits) | 54.5% |
+| Unit group, top-2 | 73.2% |
+| Jabatan (6 digits, n=196) | 42.3% |
+| 4-digit, confidence above threshold (n=174) | 58.6% |
+| 4-digit, confidence below threshold (n=24) | 25.0% |
+
+- Classifications flagged for review: 59 of 737 (8.0%)
+- LLM tokens: 1,043,836 in / 131,278 out for 728 vacancies coded
+- Cost per 1,000 vacancies: US$1.258 (seed-2-0-pro-260328; list price from config; KBJI steps plus KBLI)

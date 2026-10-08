@@ -113,13 +113,23 @@ def write_review(conn, n: int, path: Path = REVIEW_PATH, seed: int = 7) -> int:
     return len(chosen)
 
 
-def score(path: Path) -> dict[str, float]:
+def score(path: Path, conn=None) -> dict[str, float]:
+    """Precision/recall of the labelled pairs. With `conn`, "predicted" is the
+    current clustering (both postings in the same vacancy, chains included), so
+    a rule change can be re-scored without a new sheet; otherwise the sheet's
+    own `predicted` column (the rule at the time it was written)."""
+    vacancy_of = dict(conn.execute("SELECT posting_id, vacancy_id FROM job_postings").fetchall()) if conn else None
     counts = defaultdict(int)
     with path.open(encoding="utf-8", newline="") as f:
         for row in csv.DictReader(f):
             if row["label"].strip() not in ("0", "1"):
                 continue
-            counts[(int(row["predicted"]), int(row["label"]))] += 1
+            if vacancy_of is None:
+                predicted = int(row["predicted"])
+            else:
+                a, b = vacancy_of.get(row["a_id"]), vacancy_of.get(row["b_id"])
+                predicted = int(a is not None and a == b)
+            counts[(predicted, int(row["label"]))] += 1
     tp, fp, fn = counts[(1, 1)], counts[(1, 0)], counts[(0, 1)]
     labelled = sum(counts.values())
     return {
@@ -137,7 +147,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     conn = db.connect()
     if args.score:
-        logger.info("dedup score: %s", score(args.score))
+        logger.info("dedup score: %s", score(args.score, conn))
     elif args.review:
         logger.info("wrote %d pairs to %s", write_review(conn, args.review), REVIEW_PATH)
     else:

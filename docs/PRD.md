@@ -77,8 +77,8 @@ are hard to use:
 | Sources collected successfully | 5 of 5, over at least 2 weeks | Operations page |
 | Location mapped to a BPS region | ≥ 90% (regency level reported separately) | Quality gate, `docs/results.md` |
 | Salary parsed where a salary is shown | ≥ 35% of postings | Quality gate |
-| Dedup precision on hand-checked pairs | ≥ 95% | `docs/results.md` |
-| KBJI accuracy on 200 hand-labelled vacancies | reported at 1, 2, 4 and 6 digits | `docs/results.md` |
+| Dedup precision on checked pairs (by hand or an independent LLM reviewer) | ≥ 95% | `docs/results.md` |
+| KBJI accuracy (or LLM-reviewer agreement) on 200 labelled vacancies | reported at 1, 2, 4 and 6 digits | `docs/results.md` |
 | LLM cost per 1,000 vacancies | reported | `docs/results.md` |
 | Contact details in published output | 0 | Quality gate + deploy check |
 | `make demo` from a fresh clone | < 5 minutes | README |
@@ -91,7 +91,7 @@ are hard to use:
 - **Five portals are a sample**, not a census; shares between occupations depend on which portals are used.
 - **Sources change without notice.** A layout change can stop a source; the run log and quality gate make
   that visible, and saved raw pages allow a re-parse once fixed.
-- **LLM coding makes mistakes.** Accuracy is measured on a hand-labelled sample and low-confidence codes are
+- **LLM coding makes mistakes.** Coding is checked against a labelled sample (currently an independent LLM reviewer) and low-confidence codes are
   flagged, but individual codes can be wrong.
 - **Ambiguous place names** ("Tangerang", "Bandung" without "Kota"/"Kab.") are coded to the province only.
 - **Terms of service.** Several sources' terms restrict copying or automated collection; see

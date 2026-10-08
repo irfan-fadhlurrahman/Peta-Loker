@@ -144,7 +144,7 @@ def write_results(conn, metrics: dict | None, path: Path = RESULTS, reviewer: st
     review = db.count(conn, "job_classifications", "needs_review = 1")
     classified = db.count(conn, "job_classifications")
     cost = cost_per_thousand(conn)
-    dedup = dedup_score(DEDUP_SHEET) if DEDUP_SHEET.exists() else None
+    dedup = dedup_score(DEDUP_SHEET, conn) if DEDUP_SHEET.exists() else None
     pct = lambda a, b: f"{a / b:.1%}" if b else "–"  # noqa: E731
 
     lines = [
@@ -167,7 +167,9 @@ def write_results(conn, metrics: dict | None, path: Path = RESULTS, reviewer: st
     ]
     if dedup and dedup["labelled_pairs"]:
         n_pairs = dedup["labelled_pairs"]
-        lines.append(f"| Dedup precision ({reviewer}-checked pairs, n={n_pairs}) | {dedup['precision']} |")
+        who = "LLM" if reviewer == "llm" else "hand"
+        lines.append(f"| Dedup precision ({who}-checked pairs, n={n_pairs}; title threshold tuned on them) | "
+                     f"{dedup['precision']} |")
     lines += ["", "## KBJI 2026 coding", ""]
     if metrics and metrics["labelled"]:
         def p(value):
@@ -177,7 +179,7 @@ def write_results(conn, metrics: dict | None, path: Path = RESULTS, reviewer: st
             f"Labelled sample: **{metrics['labelled']} vacancies**, stratified by source and predicted major "
             f"group. Labels by: {REVIEWERS.get(reviewer, reviewer)}.",
             "",
-            "| Level | Accuracy |",
+            f"| Level | {'Agreement' if reviewer == 'llm' else 'Accuracy'} |",
             "|---|---|",
             f"| Major group (1 digit) | {p(metrics['accuracy_1'])} |",
             f"| Sub-major group (2 digits) | {p(metrics['accuracy_2'])} |",
