@@ -1,0 +1,70 @@
+# Peta Loker configuration. Secrets never go here — they live in .env.
+#
+# Every source entry is merged over `collection` (core.config.source), so a
+# source only lists what differs from the defaults.
+
+collection:
+  # Honest User-Agent: says who we are and where to complain. No stealth.
+  user_agent: "PetaLokerBot/0.1 (+https://github.com/irfan-fadhlurrahman/job_market; non-commercial portfolio project)"
+  # Only postings from the last N days are kept (plan §2).
+  max_age_days: 60
+  # Polite delay between requests to the same site, in seconds (random in range).
+  delay_min: 2.0
+  delay_max: 5.0
+  # Hard cap on detail pages fetched per source per run.
+  max_pages: 300
+  timeout_seconds: 30
+  max_retries: 3
+
+sources:
+  glints:
+    class: sources.glints.GlintsSource
+    enabled: true
+    base_url: https://glints.com
+  dealls:
+    class: sources.dealls.DeallsSource
+    enabled: true
+    base_url: https://dealls.com
+  lokerid:
+    class: sources.lokerid.LokerIdSource
+    enabled: true
+    base_url: https://www.loker.id
+  kalibrr:
+    class: sources.kalibrr.KalibrrSource
+    enabled: true
+    base_url: https://www.kalibrr.com
+  kitalulus:
+    class: sources.kitalulus.KitaLulusSource
+    enabled: true
+    base_url: https://www.kitalulus.com
+  sample:
+    class: sources.file.FileSource
+    # Not part of the daily run: loaded by `make demo` and for backfill.
+    enabled: false
+    path: data/sample/jobs.csv
+
+dedup:
+  # Cross-source match: same normalised company + province, posted within N days.
+  window_days: 30
+  title_min_ratio: 90       # rapidfuzz token_set_ratio, 0-100
+  description_min_ratio: 85
+  description_chars: 500    # chars of masked description used for similarity/hash
+  inactive_after_days: 14   # vacancy inactive if not seen for this long
+
+llm:
+  batch_size: 10
+  review_threshold: 0.70    # confidence below this -> needs_review
+  description_chars: 800    # chars of masked description sent to the model
+  max_skills: 10
+
+masking:
+  public_description_chars: 200
+
+quality:
+  max_empty_title_location_ratio: 0.01   # fail above this
+  min_region_mapped_ratio: 0.90          # warn below
+  min_salary_parsed_ratio: 0.35          # warn below
+  duplicate_ratio_range: [0.05, 0.60]    # warn outside
+
+public:
+  max_vacancies: 500
