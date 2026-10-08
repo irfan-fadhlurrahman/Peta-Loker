@@ -71,6 +71,16 @@ def _text(value) -> str | None:
     return text or None
 
 
+def _street_addresses(posting: dict) -> str | None:
+    """The employer's office address lines — used only to pin an ambiguous
+    city to its regency during normalisation; never exported."""
+    places = posting.get("jobLocation") or []
+    places = [places] if isinstance(places, dict) else places
+    streets = [collapse_ws(str((p.get("address") or {}).get("streetAddress") or ""))
+               for p in places if isinstance(p, dict) and isinstance(p.get("address"), dict)]
+    return " | ".join(s for s in streets if s) or None
+
+
 def _location(posting: dict) -> tuple[str | None, bool]:
     """'Locality, Region' for each jobLocation (joined with ' | '), and
     whether the job is remote."""
@@ -157,6 +167,8 @@ def posting_from_jsonld(obj: dict, source: str, url: str, job_id: str) -> JobPos
         extra["identifier"] = str(identifier["value"])
     if remote:
         extra["remote"] = True
+    if street := _street_addresses(obj):
+        extra["street_address"] = street
     return JobPosting(
         source=source,
         source_job_id=job_id,

@@ -1,0 +1,70 @@
+alias,region_code,note
+jaksel,3171,Jakarta Selatan
+jakarta selatan,3171,
+south jakarta,3171,
+jaktim,3172,Jakarta Timur
+jakarta timur,3172,
+east jakarta,3172,
+jakpus,3173,Jakarta Pusat
+jakarta pusat,3173,
+central jakarta,3173,
+jakbar,3174,Jakarta Barat
+jakarta barat,3174,
+west jakarta,3174,
+jakut,3175,Jakarta Utara
+jakarta utara,3175,
+north jakarta,3175,
+kepulauan seribu,3101,
+jakarta,31,province: city of Jakarta has five administrative cities
+jakarta raya,31,
+dki,31,
+dki jakarta,31,
+daerah khusus ibukota jakarta,31,
+daerah khusus jakarta,31,
+solo,3372,Kota Surakarta
+surakarta,3372,
+jogja,3471,Kota Yogyakarta
+jogjakarta,3471,
+yogya,3471,
+yogyakarta,3471,"bare ""Yogyakarta"" in job ads means the city"
+diy,34,
+daerah istimewa yogyakarta,34,
+di yogyakarta,34,
+tangsel,3674,Kota Tangerang Selatan
+tangerang selatan,3674,
+south tangerang,3674,
+bsd,3674,BSD City lies in Kota Tangerang Selatan
+jabar,32,Jawa Barat
+west java,32,
+jateng,33,Jawa Tengah
+central java,33,
+jatim,35,Jawa Timur
+east java,35,
+sumut,12,Sumatera Utara
+north sumatra,12,
+sumbar,13,Sumatera Barat
+west sumatra,13,
+sumsel,16,Sumatera Selatan
+south sumatra,16,
+kepri,21,Kepulauan Riau
+riau islands,21,
+babel,19,Kepulauan Bangka Belitung
+bangka belitung,19,
+kalbar,61,
+kalteng,62,
+kalsel,63,
+kaltim,64,
+east kalimantan,64,
+kaltara,65,
+sulut,71,
+sulteng,72,
+sulsel,73,
+south sulawesi,73,
+sultra,74,
+sulbar,76,
+ntb,52,
+ntt,53,
+west nusa tenggara,52,
+east nusa tenggara,53,
+nad,11,Aceh
+nanggroe aceh darussalam,11,

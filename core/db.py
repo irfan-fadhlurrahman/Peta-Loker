@@ -219,3 +219,77 @@ def upsert_ref_regions(conn: sqlite3.Connection, rows: Iterable[dict]) -> int:
     )
     conn.commit()
     return len(rows)
+
+
+# ----------------------------------------------------------------- normalise
+
+
+def postings_to_normalise(conn: sqlite3.Connection, only_new: bool = False) -> list[sqlite3.Row]:
+    where = "WHERE normalised_at IS NULL OR normalised_at < fetched_at" if only_new else ""
+    return conn.execute(
+        f"""
+        SELECT posting_id, location_raw, salary_raw, education_raw, experience_raw, employment_type_raw, extra_json
+        FROM job_postings {where}
+        """
+    ).fetchall()
+
+
+def update_normalised(conn: sqlite3.Connection, rows: Iterable[dict]) -> int:
+    rows = list(rows)
+    conn.executemany(
+        """
+        UPDATE job_postings SET
+            salary_min = :salary_min, salary_max = :salary_max, salary_period = :salary_period,
+            education_level = :education_level, experience_years = :experience_years,
+            employment_type = :employment_type, region_code = :region_code, province_code = :province_code,
+            is_remote = :is_remote, normalised_at = :normalised_at
+        WHERE posting_id = :posting_id
+        """,
+        rows,
+    )
+    conn.commit()
+    return len(rows)
+
+
+# --------------------------------------------------------------------- dedup
+
+
+def postings_for_dedup(conn: sqlite3.Connection) -> list[sqlite3.Row]:
+    return conn.execute(
+        """
+        SELECT posting_id, source_id, title, company_name, province_code, region_code, description_masked,
+               content_hash, posted_at, first_fetched_at, fetched_at, valid_through, vacancy_id
+        FROM job_postings
+        """
+    ).fetchall()
+
+
+def save_vacancies(conn: sqlite3.Connection, vacancies: list[dict], assignments: dict[str, str]) -> None:
+    """Write the clustering result in one transaction: upsert every vacancy,
+    point each posting at its vacancy, and drop vacancies that no posting
+    references any more (merged into another), with their LLM rows."""
+    try:
+        conn.executemany(
+            """
+            INSERT INTO job_vacancies (vacancy_id, canonical_posting_id, first_seen, last_seen, n_postings,
+                                       n_sources, is_active, date_modified)
+            VALUES (:vacancy_id, :canonical_posting_id, :first_seen, :last_seen, :n_postings, :n_sources,
+                    :is_active, :date_modified)
+            ON CONFLICT (vacancy_id) DO UPDATE SET
+                canonical_posting_id = excluded.canonical_posting_id, first_seen = excluded.first_seen,
+                last_seen = excluded.last_seen, n_postings = excluded.n_postings, n_sources = excluded.n_sources,
+                is_active = excluded.is_active, date_modified = excluded.date_modified
+            """,
+            vacancies,
+        )
+        conn.executemany("UPDATE job_postings SET vacancy_id = ? WHERE posting_id = ?",
+                         [(vid, pid) for pid, vid in assignments.items()])
+        orphan = "SELECT vacancy_id FROM job_vacancies WHERE vacancy_id NOT IN (SELECT DISTINCT vacancy_id " \
+                 "FROM job_postings WHERE vacancy_id IS NOT NULL)"
+        conn.execute(f"DELETE FROM job_classifications WHERE vacancy_id IN ({orphan})")
+        conn.execute(f"DELETE FROM job_skills WHERE vacancy_id IN ({orphan})")
+        conn.execute(f"DELETE FROM job_vacancies WHERE vacancy_id IN ({orphan})")
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
