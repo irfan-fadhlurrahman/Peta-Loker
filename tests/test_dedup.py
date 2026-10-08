@@ -80,3 +80,19 @@ def test_run_builds_vacancies_with_stable_ids_and_activity(conn_with_reference):
     ids = {r[0] for r in conn.execute("SELECT DISTINCT vacancy_id FROM job_postings WHERE title = 'Data Analyst'")}
     assert ids == {"glints:1"}
     assert db.count(conn, "job_vacancies") == 2
+
+
+def test_split_cluster_gets_a_new_id_for_the_part_that_left(conn_with_reference):
+    conn = conn_with_reference
+    _insert(conn, "glints:1", "Data Analyst", "PT Contoh", DESC, "2026-10-01")
+    _insert(conn, "dealls:2", "Data Analyst", "PT Contoh", DESC, "2026-10-02")
+    run_dedup(conn, SETTINGS, today=date(2026, 10, 8))
+    assert db.count(conn, "job_vacancies") == 1
+
+    # Stricter rules split the pair: each part must become its own vacancy.
+    strict = {**SETTINGS, "title_min_ratio": 101, "description_min_ratio": 101}
+    conn.execute("UPDATE job_postings SET content_hash = posting_id, region_code = NULL")
+    stats = run_dedup(conn, strict, today=date(2026, 10, 8))
+    ids = {r[0] for r in conn.execute("SELECT vacancy_id FROM job_postings")}
+    assert stats["vacancies"] == 2 and len(ids) == 2 and "glints:1" in ids
+    assert db.count(conn, "job_vacancies") == 2

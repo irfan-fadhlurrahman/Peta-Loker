@@ -132,7 +132,7 @@ def cost_per_thousand(conn) -> dict:
             "usd_total": round(usd, 4), "usd_per_1000": round(usd / coded * 1000, 3) if coded else None}
 
 
-def write_results(conn, metrics: dict | None, path: Path = RESULTS) -> None:
+def write_results(conn, metrics: dict | None, path: Path = RESULTS, reviewer: str = "hand") -> None:
     from scripts.dedup import score as dedup_score
 
     postings = db.count(conn, "job_postings")
@@ -166,15 +166,16 @@ def write_results(conn, metrics: dict | None, path: Path = RESULTS) -> None:
         f"| Location mapped to a BPS regency | {pct(regency, postings)} |",
     ]
     if dedup and dedup["labelled_pairs"]:
-        lines.append(f"| Dedup precision (hand-checked pairs, n={dedup['labelled_pairs']}) | {dedup['precision']} |")
+        n_pairs = dedup["labelled_pairs"]
+        lines.append(f"| Dedup precision ({reviewer}-checked pairs, n={n_pairs}) | {dedup['precision']} |")
     lines += ["", "## KBJI 2026 coding", ""]
     if metrics and metrics["labelled"]:
         def p(value):
             return f"{value:.1%}" if value is not None else "–"
 
         lines += [
-            f"Hand-labelled sample: **{metrics['labelled']} vacancies**, stratified by source and predicted "
-            "major group.",
+            f"Labelled sample: **{metrics['labelled']} vacancies**, stratified by source and predicted major "
+            f"group. Labels by: {REVIEWERS.get(reviewer, reviewer)}.",
             "",
             "| Level | Accuracy |",
             "|---|---|",
@@ -203,10 +204,18 @@ def write_results(conn, metrics: dict | None, path: Path = RESULTS) -> None:
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
+REVIEWERS = {
+    "hand": "a person, by hand",
+    "llm": "an independent LLM reviewer (Claude, a different model family from the coder), blind to the coder's "
+           "predictions. Read the figures as agreement between two models, not as accuracy against human experts",
+}
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--sample", type=int, metavar="N", help="write a labelling sheet of N vacancies")
     parser.add_argument("--score", type=Path, metavar="CSV", help="score a filled labelling sheet")
+    parser.add_argument("--reviewer", choices=sorted(REVIEWERS), default="hand", help="who filled the sheets")
     args = parser.parse_args(argv)
     conn = db.connect()
     if args.sample:
@@ -215,7 +224,7 @@ def main(argv: list[str] | None = None) -> int:
     metrics = score_sheet(args.score, config.llm()["review_threshold"]) if args.score else None
     if metrics:
         print(json.dumps(metrics, indent=1))
-    write_results(conn, metrics)
+    write_results(conn, metrics, reviewer=args.reviewer)
     print(f"wrote {RESULTS}")
     return 0
 

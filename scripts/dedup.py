@@ -46,12 +46,22 @@ def run(conn, settings: dict | None = None, today: date | None = None) -> dict[s
     groups = cluster(list(keys.values()), settings).groups()
     by_id = {r["posting_id"]: r for r in rows}
 
-    vacancies, assignments = [], {}
+    vacancies, assignments, claimed = [], {}, set()
     inactive_before = today - timedelta(days=settings["inactive_after_days"])
     for members in groups.values():
         members.sort(key=lambda pid: (keys[pid].day or date.max, pid))
+    # Keep the oldest vacancy id a group's members already had, so classifications
+    # survive re-clustering, but let each id go to one group only: when a cluster
+    # splits, the other part gets a fresh id instead of staying merged under the old one.
+    for members in sorted(groups.values(), key=lambda ms: (-len(ms), ms[0])):
         existing = sorted({keys[m].vacancy_id for m in members if keys[m].vacancy_id})
-        vacancy_id = existing[0] if existing else members[0]
+        vacancy_id = next((v for v in existing if v not in claimed), None)
+        if vacancy_id is None:
+            vacancy_id = next((m for m in members if m not in claimed), None)
+        suffix = 1
+        while vacancy_id is None or vacancy_id in claimed:  # every candidate taken
+            vacancy_id, suffix = f"{members[0]}~{suffix}", suffix + 1
+        claimed.add(vacancy_id)
         member_rows = [by_id[m] for m in members]
         first_seen = min((keys[m].day for m in members if keys[m].day), default=None)
         last_seen = max(r["fetched_at"][:10] for r in member_rows)

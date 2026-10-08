@@ -50,7 +50,7 @@ sources:
 dedup:
   # Cross-source match: same normalised company + province, posted within N days.
   window_days: 30
-  title_min_ratio: 90       # rapidfuzz token_set_ratio, 0-100
+  title_min_ratio: 93       # rapidfuzz token_sort_ratio, 0-100 (unless one title only adds words)
   description_min_ratio: 85
   description_chars: 500    # chars of masked description used for similarity/hash
   inactive_after_days: 14   # vacancy inactive if not seen for this long

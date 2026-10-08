@@ -69,11 +69,22 @@ class UnionFind:
         return out
 
 
+def titles_match(title_a: str, title_b: str, min_ratio: float) -> bool:
+    """One title only adding words to the other ("Data Analyst" / "Data Analyst
+    Bandung") is a match; when each has words the other lacks ("… Yogyakarta
+    Wirobrajan" / "… Yogyakarta Sagan" — two branches) the whole strings must
+    be near-identical (token_sort, which counts the extra words against them)."""
+    tokens_a, tokens_b = set(title_a.split()), set(title_b.split())
+    if tokens_a and tokens_b and (tokens_a <= tokens_b or tokens_b <= tokens_a):
+        return True
+    return fuzz.token_sort_ratio(title_a, title_b) >= min_ratio
+
+
 def is_match(a: PostingKey, b: PostingKey, settings: dict) -> bool:
     title_a, title_b = normalise_title(a.title), normalise_title(b.title)
     if title_a == title_b and a.region_code and a.region_code == b.region_code and len(a.region_code) == 4:
         return True
-    if fuzz.token_set_ratio(title_a, title_b) < settings["title_min_ratio"]:
+    if not titles_match(title_a, title_b, settings["title_min_ratio"]):
         return False
     if not a.description or not b.description:
         return False
