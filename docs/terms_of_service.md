@@ -74,7 +74,7 @@ on ingestion, company names are replaced by pseudonyms in everything published, 
 - robots.txt is read for every host and checked before every request (`core/http.py`); a disallowed URL is
   never fetched, and an unreachable robots.txt is treated as "disallow everything".
 - 2–5 seconds between requests to the same site, at most 300 detail pages per source per run, once a day.
-- User-Agent: `PetaLokerBot/0.1 (+https://github.com/irfan-fadhlurrahman/job_market; non-commercial
+- User-Agent: `PetaLokerBot/0.1 (+https://github.com/irfan-fadhlurrahman/Peta-Loker; non-commercial
   portfolio project)` — no browser impersonation, no stealth plugins, no proxies.
 - A 403, or a 429 that persists, stops the run for that source.
 - Only postings from the last 60 days are kept.

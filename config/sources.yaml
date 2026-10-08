@@ -5,7 +5,7 @@
 
 collection:
   # Honest User-Agent: says who we are and where to complain. No stealth.
-  user_agent: "PetaLokerBot/0.1 (+https://github.com/irfan-fadhlurrahman/job_market; non-commercial portfolio project)"
+  user_agent: "PetaLokerBot/0.1 (+https://github.com/irfan-fadhlurrahman/Peta-Loker; non-commercial portfolio project)"
   # Only postings from the last N days are kept (plan §2).
   max_age_days: 60
   # Polite delay between requests to the same site, in seconds (random in range).
