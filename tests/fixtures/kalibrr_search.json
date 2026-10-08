@@ -1,0 +1,13 @@
+{"count": 2, "jobs": [
+ {"id": 900001, "name": "Community Officer", "slug": "community-officer", "company_name": "PT Contoh Syariah",
+  "company": {"code": "contoh-syariah"}, "google_location": {"address_components": {"city": "Pemalang", "region": "Jawa Tengah", "country": "Indonesia"}},
+  "base_salary": 3500000, "maximum_salary": 4000000, "salary_interval": "Monthly", "salary_currency": "IDR",
+  "education_level": 200, "work_experience": 200, "tenure": "Full time", "function": "Sales and Marketing",
+  "is_work_from_home": false, "description": "<p>Mendampingi nasabah.</p>", "qualifications": "<p>Minimal SMA</p>",
+  "activation_date": "2026-10-07T04:52:41+00:00", "application_end_date": "2026-11-06T17:00:00+00:00"},
+ {"id": 900002, "name": "Remote Copywriter", "slug": "remote-copywriter", "company_name": "PT Contoh Kata",
+  "company": {"code": "contoh-kata"}, "google_location": {}, "base_salary": null, "maximum_salary": null,
+  "education_level": 999, "work_experience": 300, "tenure": "Contractual", "function": "Marketing",
+  "is_work_from_home": true, "description": "Menulis naskah iklan.", "qualifications": null,
+  "activation_date": "2026-10-06T01:00:00+00:00", "application_end_date": null}
+]}

@@ -99,7 +99,7 @@ def test_page_cap_limits_downloads(conn, raw_store, settings):
     urls = [f"https://jobs.example.test/job/{i}" for i in range(5)]
     result = _source(conn, raw_store, settings, pages, urls).run()
     assert result.counts["n_fetched"] == 2
-    assert result.counts["n_listed"] == 5
+    assert result.counts["n_listed"] == 2
 
 
 def test_recently_fetched_posting_is_touched_not_refetched(conn, raw_store, settings):

@@ -143,6 +143,10 @@ class JobSource(ABC):
         self.raw_store = raw_store or get_raw_store()
         self.max_pages = int(max_pages if max_pages is not None else self.settings.get("max_pages", 300))
         self.max_age_days = int(self.settings.get("max_age_days", 60))
+        # Listings are walked newest-first; once this many postings in a row
+        # are older than the window, the rest of the listing is older still.
+        self.stop_after_old = int(self.settings.get("stop_after_old", 30))
+        self._old_streak = 0
         self.logger = logging.getLogger(f"source.{self.source}")
 
     # ---------------------------------------------------------- subclass API
@@ -180,10 +184,14 @@ class JobSource(ABC):
         error_types: dict[str, int] = {}
         try:
             for url in self.list_jobs():
-                counts["n_listed"] += 1
                 if counts["n_fetched"] >= self.max_pages:
-                    counts["n_skipped"] += 1
-                    continue
+                    self.logger.info("page cap of %d reached: stopping the listing", self.max_pages)
+                    break
+                counts["n_listed"] += 1
+                if self._old_streak >= self.stop_after_old:
+                    self.logger.info("%d postings in a row older than %d days: end of the window",
+                                     self._old_streak, self.max_age_days)
+                    break
                 try:
                     self._process(url, counts)
                 except (RobotsDisallowed, LayoutChanged, FetchFailed) as e:
@@ -230,7 +238,9 @@ class JobSource(ABC):
             age = days_ago(to_iso(posting.posted_at))
             if age is not None and age > self.max_age_days:
                 counts["n_skipped"] += 1
+                self._old_streak += 1
                 continue
+            self._old_streak = 0
             rows.append(posting_to_row(posting, raw_key, fetched_at))
         for row in rows:
             if row["company_hmac"]:

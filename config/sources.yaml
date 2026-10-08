@@ -13,6 +13,8 @@ collection:
   delay_max: 5.0
   # Hard cap on detail pages fetched per source per run.
   max_pages: 300
+  # Listings are newest-first: stop after this many postings in a row older than max_age_days.
+  stop_after_old: 30
   timeout_seconds: 30
   max_retries: 3
 
