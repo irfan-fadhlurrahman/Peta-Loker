@@ -4,7 +4,7 @@ Discovery and parsing in one: the job-search endpoint that Kalibrr's own job
 board calls (/kjs/job_board/search, not disallowed by robots.txt) returns
 full job records — description, qualifications, salary, location, education
 — 15 per request, sorted by freshness. So no detail pages are downloaded at
-all: ~85 requests cover every active Indonesian posting.
+all: one request is one listing page.
 
 Code tables: Kalibrr publishes education level and job level as numbers
 without labels. The labels below were inferred by comparing the codes with
@@ -24,7 +24,6 @@ from sources.api import ApiSource
 
 API_URL = "https://www.kalibrr.com/kjs/job_board/search"
 PAGE_SIZE = 15
-MAX_OFFSET = 3000
 
 EDUCATION_CODES = {200: "SMA/SMK", 350: "Diploma", 450: "Diploma (D3)", 550: "Sarjana (S1)", 650: "Magister (S2)"}
 JOB_LEVEL_CODES = {100: "Internship / OJT", 200: "Entry level / Junior", 300: "Associate / Supervisor",
@@ -41,7 +40,7 @@ class KalibrrSource(ApiSource):
         self._exhausted = False
 
     def list_jobs(self) -> Iterator[str]:
-        for offset in range(0, MAX_OFFSET, PAGE_SIZE):
+        for offset in range(0, self.max_listing_pages * PAGE_SIZE, PAGE_SIZE):
             if self._exhausted:
                 return
             yield (f"{API_URL}?limit={PAGE_SIZE}&offset={offset}&sort=Freshness&country=Indonesia")

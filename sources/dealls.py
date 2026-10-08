@@ -18,8 +18,7 @@ from core.timeutil import days_ago, to_iso
 from sources.jsonld import JsonLdSource
 
 API_URL = "https://api.sejutacita.id/v1/explore-job/job"
-PAGE_SIZE = 50
-MAX_API_PAGES = 100
+PAGE_SIZE = 20
 _JOB_URL = re.compile(r"^https://dealls\.com/loker/([^/?#]+)$")
 
 
@@ -27,7 +26,7 @@ class DeallsSource(JsonLdSource):
     source = "dealls"
 
     def list_jobs(self) -> Iterator[str]:
-        for page in range(1, MAX_API_PAGES + 1):
+        for page in range(1, self.max_listing_pages + 1):
             params = {"page": page, "limit": PAGE_SIZE, "sortParam": "publishedAt", "sortBy": "desc",
                       "published": "true", "status": "active"}
             data = self.http.get(API_URL, params=params).json().get("data") or {}

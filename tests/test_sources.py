@@ -157,6 +157,23 @@ def test_lokerid_pages_until_no_new_links(conn, raw_store, settings):
     assert list(source.list_jobs()) == ["https://www.loker.id/a/b/job-one.html", "https://www.loker.id/a/b/job-two.html"]
 
 
+def test_listing_stops_at_max_listing_pages(conn, raw_store, settings):
+    settings["max_listing_pages"] = 2
+    requested = []
+
+    def handler(request):
+        requested.append(request.url.path)
+        n = len(requested)
+        return httpx.Response(200, text=f'<a href="/a/b/job-{n}.html">{n}</a>')
+
+    lokerid = _make(LokerIdSource, conn, raw_store, settings, _robots_ok(handler))
+    assert len(list(lokerid.list_jobs())) == 2
+    assert requested == ["/cari-lowongan-kerja", "/cari-lowongan-kerja/page/2"]
+
+    kalibrr = _make(KalibrrSource, conn, raw_store, settings)
+    assert [u.split("offset=")[1].split("&")[0] for u in kalibrr.list_jobs()] == ["0", "15"]
+
+
 # ------------------------------------------------------------------ file source
 
 

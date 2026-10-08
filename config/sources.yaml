@@ -11,7 +11,9 @@ collection:
   # Polite delay between requests to the same site, in seconds (random in range).
   delay_min: 2.0
   delay_max: 5.0
-  # Hard cap on detail pages fetched per source per run.
+  # Listing (search-result) pages walked per source per run, newest first.
+  max_listing_pages: 10
+  # Hard cap on detail pages fetched per source per run (safety net).
   max_pages: 300
   # Listings are newest-first: stop after this many postings in a row older than max_age_days.
   stop_after_old: 30

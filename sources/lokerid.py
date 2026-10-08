@@ -23,7 +23,6 @@ from sources.jsonld import JsonLdSource
 
 BASE_URL = "https://www.loker.id"
 LISTING_URL = f"{BASE_URL}/cari-lowongan-kerja"
-MAX_LISTING_PAGES = 150
 _JOB_PATH = re.compile(r"^/[a-z0-9-]+/[a-z0-9-]+/([a-z0-9-]+)\.html$")
 EXTRA_LABELS = {"Level Pekerjaan": "job_level", "Fungsi": "job_function", "Pendidikan": "education_listed"}
 
@@ -33,7 +32,7 @@ class LokerIdSource(JsonLdSource):
 
     def list_jobs(self) -> Iterator[str]:
         seen: set[str] = set()
-        for page in range(1, MAX_LISTING_PAGES + 1):
+        for page in range(1, self.max_listing_pages + 1):
             url = LISTING_URL if page == 1 else f"{LISTING_URL}/page/{page}"
             soup = BeautifulSoup(self.http.get(url).text, "lxml")
             new = []

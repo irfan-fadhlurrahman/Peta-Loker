@@ -7,7 +7,8 @@ robots.txt, so it is never called directly or read from: everything here
 comes from rendering public www.kitalulus.com pages, which robots.txt allows.
 
 Discovery: render /lowongan sorted by "Terbaru" (updatedAt) and scroll,
-collecting /lowongan/detail/<slug> links until no new ones appear.
+collecting /lowongan/detail/<slug> links; the first render and each scroll
+count as one listing page.
 
 Parsing: the rendered detail page carries a JobPosting JSON-LD block (read
 with the shared JSON-LD mapper) and the vacancy record the page was rendered
@@ -31,7 +32,6 @@ from sources.jsonld import is_job_posting, iter_jsonld, posting_from_jsonld
 
 BASE_URL = "https://www.kitalulus.com"
 LISTING_URL = f"{BASE_URL}/lowongan?sortBy=updatedAt"
-MAX_SCROLLS = 60
 IDLE_SCROLLS_BEFORE_STOP = 3
 _DETAIL_PATH = re.compile(r"^/lowongan/detail/([a-z0-9-]+)$")
 _RSC_CHUNK = re.compile(r'self\.__next_f\.push\(\[1,"(.*?)"\]\)', re.S)
@@ -74,7 +74,7 @@ class KitaLulusSource(BrowserSource):
         ordered: list[str] = []
         seen: set[str] = set()
         idle = 0
-        for _ in range(MAX_SCROLLS):
+        for _ in range(self.max_listing_pages):  # one listing page = the first render or one scroll
             hrefs = self.page.eval_on_selector_all(
                 'a[href*="/lowongan/detail/"]', "els => els.map(e => e.getAttribute('href'))"
             )

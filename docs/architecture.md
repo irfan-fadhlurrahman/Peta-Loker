@@ -69,8 +69,8 @@ classDiagram
 identical across sources:
 
 1. register the source and open a run log;
-2. walk `list_jobs()` (newest first), stopping at the page cap or after 30 postings in a row older than
-   60 days;
+2. walk `list_jobs()` (newest first) for at most 10 listing pages (`max_listing_pages`), stopping earlier
+   at the detail-page cap or after 30 postings in a row older than 60 days;
 3. skip a posting fetched in the last 7 days — seeing it in the listing only refreshes "last seen";
 4. `fetch()` through the polite HTTP client (robots.txt, 2–5 s delay, retries, 403/429 → stop);
 5. save the raw page, `parse()`, mask contact details, apply the 60-day window, upsert;
@@ -81,11 +81,11 @@ file, how to fetch it. A new site that publishes JSON-LD needs about 30 lines.
 
 | Source | Discovery | Parsing | Why this way |
 |---|---|---|---|
-| Glints | `sitemap_job_id_N.xml`, from 1 (newest) | JSON-LD | The explore page with query parameters is disallowed by robots.txt |
-| Dealls | Public job-search API, `publishedAt desc` | JSON-LD | The listing page only server-renders 18 jobs; the sitemap has no dates |
-| Loker.id | `/cari-lowongan-kerja/page/N` | JSON-LD + `extract_extra()` | Job level and function appear only in the HTML and help occupation coding |
-| Kalibrr | `/kjs/job_board/search`, offset paging | Full records from the same JSON | One request = 15 complete postings; no detail pages needed |
-| KitaLulus | Rendered listing, infinite scroll | JSON-LD + the page's own vacancy record | Its data API host disallows crawlers, so only public pages are rendered |
+| Glints | `sitemap_job_id_N.xml`, from 1 (newest); a page = 30 entries | JSON-LD | The explore page with query parameters is disallowed by robots.txt |
+| Dealls | Public job-search API, `publishedAt desc`, 20 per page | JSON-LD | The listing page only server-renders 18 jobs; the sitemap has no dates |
+| Loker.id | `/cari-lowongan-kerja/page/N`, ~21 per page | JSON-LD + `extract_extra()` | Job level and function appear only in the HTML and help occupation coding |
+| Kalibrr | `/kjs/job_board/search`, `sort=Freshness`, 15 per page | Full records from the same JSON | One request = 15 complete postings; no detail pages needed |
+| KitaLulus | Rendered listing sorted by `updatedAt`; a page = first render or one scroll | JSON-LD + the page's own vacancy record | Its data API host disallows crawlers, so only public pages are rendered |
 
 ## Data model
 

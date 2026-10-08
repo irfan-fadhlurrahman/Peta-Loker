@@ -142,6 +142,9 @@ class JobSource(ABC):
         self.http = http or HttpClient.from_settings(self.settings)
         self.raw_store = raw_store or get_raw_store()
         self.max_pages = int(max_pages if max_pages is not None else self.settings.get("max_pages", 300))
+        # How many listing pages list_jobs() walks; each source defines what
+        # one page is (an API page, a search-result page, a scroll step).
+        self.max_listing_pages = int(self.settings.get("max_listing_pages", 10))
         self.max_age_days = int(self.settings.get("max_age_days", 60))
         # Listings are walked newest-first; once this many postings in a row
         # are older than the window, the rest of the listing is older still.
